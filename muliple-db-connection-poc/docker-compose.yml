@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+  springboot-app:
+    build: .
+    ports:
+      - "8080:8080"
+    depends_on:
+      - mysql-db
+      - postgres-db
+    environment:
+      # MySQL datasource configuration
+      SPRING_DATASOURCE_MYSQL_URL: jdbc:mysql://mysql-db:3306/mydb
+      SPRING_DATASOURCE_MYSQL_USERNAME: root
+      SPRING_DATASOURCE_MYSQL_PASSWORD: rootpassword
+      # PostgreSQL datasource configuration
+      SPRING_DATASOURCE_POSTGRES_URL: jdbc:postgresql://postgres-db:5432/mydb
+      SPRING_DATASOURCE_POSTGRES_USERNAME: postgres
+      SPRING_DATASOURCE_POSTGRES_PASSWORD: postgrespassword
+
+  mysql-db:
+    image: mysql:8
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: mydb
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-db:
+    image: postgres:13
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: mydb
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql-data:
+  postgres-data:
